@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import React, { 
+  createContext, 
+  useState, 
+  useEffect, 
+  useCallback, 
+  ReactNode 
+} from 'react';
 import { databaseManager } from '../lib/database';
 
+// Define the shape of the context's value
 interface DatabaseContextType {
   databaseType: 'supabase';
   isConnected: boolean;
@@ -9,33 +15,23 @@ interface DatabaseContextType {
   testConnection: () => Promise<void>;
 }
 
-const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
+// Export the context so the hook can use it from another file
+export const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
 
-export const useDatabase = () => {
-  const context = useContext(DatabaseContext);
-  if (context === undefined) {
-    throw new Error('useDatabase must be used within a DatabaseProvider');
-  }
-  return context;
-};
-
-export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// The provider component remains here
+export const DatabaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
-  useEffect(() => {
-    testSupabaseConnection();
-  }, []);
-
-  const testSupabaseConnection = async () => {
+  const testSupabaseConnection = useCallback(async () => {
     try {
-      // Check if Supabase is properly configured
+      // Check for valid Supabase environment variables
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('placeholder')) {
         setIsConnected(false);
-        setConnectionError('Supabase not configured. Please set up your environment variables.');
+        setConnectionError('Supabase is not configured. Please set up your environment variables.');
         return;
       }
       
@@ -49,21 +45,22 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     } catch (error) {
       setIsConnected(false);
-      setConnectionError('Supabase connection failed. Please check your configuration.');
+      setConnectionError('Supabase connection failed. Check your configuration or network.');
       console.error('Supabase connection error:', error);
     }
-  };
+  }, []); // useCallback with an empty dependency array
 
-  const testConnection = async () => {
-    await testSupabaseConnection();
-  };
+  // Run the connection test once on component mount
+  useEffect(() => {
+    testSupabaseConnection();
+  }, [testSupabaseConnection]);
 
   return (
     <DatabaseContext.Provider value={{
       databaseType: 'supabase',
       isConnected,
       connectionError,
-      testConnection
+      testConnection: testSupabaseConnection // Use the memoized function
     }}>
       {children}
     </DatabaseContext.Provider>
