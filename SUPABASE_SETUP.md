@@ -66,10 +66,22 @@ In your Supabase Dashboard:
    - Full Name: Your name
    - Username: Unique username
    - Email: Your admin email
-   - Role: Select "Administrator"
    - Password: Secure password (min 6 characters)
+   - Role: First user automatically becomes Administrator
 4. **Complete registration** and verify your email if required
 5. **Sign in** with your new credentials
+
+### How User Management Works
+
+✅ **Automatic Profile Creation**:
+- When you sign up through Supabase Auth, a user profile is automatically created
+- First registered user automatically gets admin privileges
+- Subsequent users default to editor role (can be changed by admins)
+
+✅ **Seamless Integration**:
+- Supabase Auth handles password security and email verification
+- User profiles are automatically synchronized with authentication
+- No manual database setup required for user accounts
 
 ### Production Authentication Features
 

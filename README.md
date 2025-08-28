@@ -115,6 +115,43 @@ The system includes a production-ready authentication system with two user roles
 2. **Additional Accounts**: Existing admins can create new accounts via the Users Management panel
 3. **Account Verification**: All new users receive email verification links
 4. **Security**: All passwords are securely managed by Supabase Auth
+
+### Creating Your First Admin Account
+
+1. **Visit the login page**: http://localhost:5173/admin/login
+2. **Click "Need an account? Register"**
+3. **Fill in the registration form**:
+   - Full Name: Your name
+   - Username: Unique username
+   - Email: Your admin email
+   - Password: Secure password (min 6 characters)
+   - Role: First user automatically becomes Administrator
+4. **Complete registration** and verify your email if required
+5. **Sign in** with your new credentials
+
+### Production Authentication Features
+
+✅ **Secure User Management**:
+- Real user accounts stored in database
+- Supabase Auth integration for security
+- Email verification for new accounts
+- Password reset functionality
+- First registered user automatically becomes admin
+- Automatic user profile creation for authenticated users
+
+✅ **Role-Based Access Control**:
+- Admin: Full system access
+- Editor: Content management only
+- Secure role enforcement
+- Automatic role assignment for first user
+
+✅ **Production Security**:
+- No demo accounts or hardcoded credentials
+- Encrypted password storage
+- Session management
+- Secure logout functionality
+- Automatic user profile synchronization
+
 ## 🌐 Deployment
 
 ### Build for Production
