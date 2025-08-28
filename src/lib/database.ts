@@ -252,44 +252,40 @@ export class DatabaseManager {
   }
 
   async createUser(user: Omit<UserRow, 'id' | 'created_at' | 'updated_at'> & { password?: string }): Promise<UserRow> {
-    // Check if this is the first user (make them admin)
-    const { data: existingUsers, error: countError } = await supabase
-      .from('users')
-      .select('id')
-      .limit(1);
-    
-    const isFirstUser = !countError && (!existingUsers || existingUsers.length === 0);
-    const userRole = isFirstUser ? 'admin' : (user.role || 'editor');
+    // This method is deprecated for production use
+    // Users should be created through the admin panel or direct database operations
+    throw new Error('User creation through this method is not supported in production. Use admin panel instead.');
+  }
 
-    // Create auth user first
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: user.email,
-      password: user.password || 'temp_password_' + Math.random().toString(36).substring(7)
-    });
+  async authenticateUser(email: string, password: string): Promise<UserRow | null> {
+    try {
+      // First check if user exists in database
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('status', 'active')
+        .single();
 
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('Failed to create auth user');
-    // Create user record in database
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{
-        id: authData.user.id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        role: userRole,
-        status: user.status,
-        password_hash: 'managed_by_supabase_auth'
-      }])
-      .select()
-      .single();
-    
-    if (error) {
-      // Clean up auth user if database insert fails
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      throw error;
+      if (userError || !userData) {
+        return null;
+      }
+
+      // Authenticate with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (authError || !authData.user) {
+        return null;
+      }
+
+      return userData;
+    } catch (error) {
+      console.error('Authentication error:', error);
+      return null;
     }
-    return data;
   }
 
   async updateUser(id: string, updates: Partial<UserRow>): Promise<UserRow> {

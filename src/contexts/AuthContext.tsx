@@ -15,7 +15,6 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: { email: string; password: string; name: string; username: string; role?: 'admin' | 'editor' }) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
   error: string | null;
@@ -81,15 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        // If user record doesn't exist, create one for the authenticated user
-        if (error.code === 'PGRST116') {
-          console.log('User record not found, creating new user record...');
-          await createUserRecord(userId);
-          return;
-        }
-        
         console.error('Error fetching user data:', error);
-        setError('User not found or inactive');
+        setError('User not found or inactive. Please contact administrator.');
         return;
       }
 
@@ -115,119 +107,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const createUserRecord = async (userId: string) => {
-    try {
-      // Get user info from Supabase Auth
-      const { data: authUser, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !authUser.user) {
-        throw new Error('Could not get authenticated user info');
-      }
-
-      const email = authUser.user.email;
-      if (!email) {
-        throw new Error('User email not available');
-      }
-
-      // Create base username from email
-      const baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-      
-      // Generate unique username
-      let username = baseUsername;
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      while (attempts < maxAttempts) {
-        // Check if username already exists
-        const { data: existingUser, error: checkError } = await supabase
-          .from('users')
-          .select('username')
-          .eq('username', username)
-          .single();
-        
-        // If no error or error is "no rows found", username is available
-        if (checkError && checkError.code === 'PGRST116') {
-          break; // Username is available
-        }
-        
-        if (checkError && checkError.code !== 'PGRST116') {
-          console.error('Error checking username availability:', checkError);
-          throw new Error('Failed to check username availability');
-        }
-        
-        // If we reach here, username exists, generate a new one
-        attempts++;
-        const randomSuffix = Math.random().toString(36).substring(2, 6);
-        username = `${baseUsername}${randomSuffix}`;
-      }
-      
-      if (attempts >= maxAttempts) {
-        throw new Error('Could not generate unique username');
-      }
-      
-      // Extract name from email or use default
-      const name = authUser.user.user_metadata?.name || 
-                   authUser.user.user_metadata?.full_name || 
-                   email.split('@')[0];
-
-      // Create user record in database
-      const { data, error } = await supabase
-        .from('users')
-        .insert([{
-          id: userId,
-          username: username,
-          email: email,
-          name: name,
-          role: 'admin', // Default to admin for first user, can be changed later
-          status: 'active',
-          password_hash: 'managed_by_supabase_auth'
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating user record:', error);
-        setError('Failed to create user profile');
-        return;
-      }
-
-      // Set user data
-      setUser({
-        id: data.id,
-        username: data.username,
-        email: data.email,
-        role: data.role,
-        name: data.name
-      });
-      setIsAuthenticated(true);
-      setError(null);
-
-      console.log('User record created successfully');
-    } catch (error) {
-      console.error('Error creating user record:', error);
-      setError('Failed to create user profile');
-    }
-  };
-
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
 
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // First, check if user exists in our users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('status', 'active')
+        .single();
+
+      if (userError) {
+        console.error('User lookup error:', userError);
+        setError('Invalid email or password');
+        return false;
+      }
+
+      if (!userData) {
+        setError('User not found or inactive');
+        return false;
+      }
+
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
       });
 
-      if (error) {
-        console.error('Login error:', error);
-        setError(error.message);
+      if (authError) {
+        console.error('Authentication error:', authError);
+        setError('Invalid email or password');
         return false;
       }
 
-      if (data.user) {
-        await fetchUserData(data.user.id);
+      if (authData.user) {
+        // Set user data directly from database
+        setUser({
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          role: userData.role,
+          name: userData.name
+        });
+        setIsAuthenticated(true);
+        setError(null);
+
+        // Update last login
+        await supabase
+          .from('users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', userData.id);
       }
 
       return true;
@@ -240,77 +172,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: { 
-    email: string; 
-    password: string; 
-    name: string; 
-    username: string; 
-    role?: 'admin' | 'editor' 
-  }): Promise<boolean> => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Check if username already exists
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('username')
-        .eq('username', userData.username)
-        .single();
-
-      if (existingUser) {
-        setError('Username already exists');
-        return false;
-      }
-
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password
-      });
-
-      if (authError) {
-        console.error('Auth registration error:', authError);
-        setError(authError.message);
-        return false;
-      }
-
-      if (!authData.user) {
-        setError('Failed to create user account');
-        return false;
-      }
-
-      // Create user record in database
-      const { error: dbError } = await supabase
-        .from('users')
-        .insert([{
-          id: authData.user.id,
-          username: userData.username,
-          email: userData.email,
-          name: userData.name,
-          role: userData.role || 'editor',
-          status: 'active',
-          password_hash: 'managed_by_supabase_auth' // Placeholder since Supabase handles auth
-        }]);
-
-      if (dbError) {
-        console.error('Database user creation error:', dbError);
-        setError('Failed to create user profile');
-        
-        // Clean up auth user if database insert fails
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError('Registration failed. Please try again.');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -324,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, loading, error }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, loading, error }}>
       {children}
     </AuthContext.Provider>
   );

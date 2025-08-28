@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Shield, User, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Shield, User, Eye, EyeOff, AlertTriangle, Key } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
 
 interface UserData {
   id: string;
@@ -19,8 +18,7 @@ const UsersManagement: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const { register } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<string | null>(null);
@@ -69,26 +67,11 @@ const UsersManagement: React.FC = () => {
     
     const saveUser = async () => {
       try {
-        // Validation for new users
-        if (!editingUser) {
-          if (!formData.password) {
-            alert('Password is required for new users');
-            return;
-          }
-          if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match');
-            return;
-          }
-          if (formData.password.length < 6) {
-            alert('Password must be at least 6 characters long');
-            return;
-          }
-        }
-
-        setIsCreating(true);
+        setIsProcessing(true);
 
         if (editingUser) {
-          const updateData: any = {
+          // Update existing user (excluding password)
+          const updateData = {
             name: formData.name,
             username: formData.username,
             email: formData.email,
@@ -96,9 +79,6 @@ const UsersManagement: React.FC = () => {
             status: formData.status
           };
           
-          // Note: Password updates should be handled through Supabase Auth
-          // For now, we'll only update the user profile data
-
           const { data, error } = await supabase
             .from('users')
             .update(updateData)
@@ -111,24 +91,87 @@ const UsersManagement: React.FC = () => {
           setUsers(prev => prev.map(user => 
             user.id === editingUser ? data : user
           ));
-          alert('User updated successfully!');
-        } else {
-          // Use the register function from AuthContext for proper user creation
-          const success = await register({
-            email: formData.email,
-            password: formData.password,
-            name: formData.name,
-            username: formData.username,
-            role: formData.role
-          });
-
-          if (success) {
-            alert('User created successfully! They will receive an email to verify their account.');
-            await fetchUsers(); // Refresh the users list
+          
+          // Handle password update separately if provided
+          if (formData.password) {
+            try {
+              // Call the database function to update password
+              const { error: passwordError } = await supabase.rpc('update_user_password', {
+                p_user_id: editingUser,
+                p_new_password: formData.password
+              });
+              
+              if (passwordError) {
+                console.warn('Password update failed:', passwordError);
+                alert('User updated but password change failed. Please try updating password separately.');
+              } else {
+                alert('User and password updated successfully!');
+              }
+            } catch (passwordError) {
+              console.warn('Password update error:', passwordError);
+              alert('User updated but password change failed. Please try updating password separately.');
+            }
           } else {
-            alert('Failed to create user. Please check the form and try again.');
+            alert('User updated successfully!');
+          }
+        } else {
+          // Create new user
+          if (!formData.password) {
+            alert('Password is required for new users');
             return;
           }
+          if (formData.password !== formData.confirmPassword) {
+            alert('Passwords do not match');
+            return;
+          }
+          if (formData.password.length < 6) {
+            alert('Password must be at least 6 characters long');
+            return;
+          }
+
+          // First create Supabase Auth user
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password
+          });
+
+          if (authError) {
+            console.error('Auth user creation error:', authError);
+            alert('Failed to create authentication account: ' + authError.message);
+            return;
+          }
+
+          if (!authData.user) {
+            alert('Failed to create authentication account');
+            return;
+          }
+
+          // Then create user record in database
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .insert([{
+              id: authData.user.id,
+              username: formData.username,
+              email: formData.email,
+              name: formData.name,
+              role: formData.role,
+              status: formData.status,
+              password_hash: 'managed_by_supabase_auth'
+            }])
+            .select()
+            .single();
+
+          if (userError) {
+            console.error('Database user creation error:', userError);
+            // Clean up auth user if database insert fails
+            await supabase.auth.admin.deleteUser(authData.user.id);
+            alert('Failed to create user profile: ' + userError.message);
+            return;
+          }
+
+          setUsers(prev => [userData, ...prev]);
+          alert('User updated successfully!');
+          alert('User created successfully!');
         }
         
         resetForm();
@@ -136,7 +179,7 @@ const UsersManagement: React.FC = () => {
         console.error('Error saving user:', error);
         alert('Error saving user. Please try again.');
       } finally {
-        setIsCreating(false);
+        setIsProcessing(false);
       }
     };
 
@@ -509,10 +552,10 @@ const UsersManagement: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isCreating}
+                  disabled={isProcessing}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCreating ? 'Processing...' : editingUser ? 'Update User' : 'Create User'}
+                  {isProcessing ? 'Processing...' : editingUser ? 'Update User' : 'Create User'}
                 </button>
               </div>
             </form>
