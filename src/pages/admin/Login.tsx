@@ -301,9 +301,10 @@ const Login: React.FC = () => {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h3 className="text-sm font-medium text-blue-700 mb-2">Production System:</h3>
             <div className="text-xs text-blue-600 space-y-1">
-              <p>• Only registered users can access the admin panel</p>
+              <p>• Create your admin account using the registration form</p>
               <p>• All user accounts are stored securely in the database</p>
-              <p>• Contact your administrator to create an account</p>
+              <p>• First registered user automatically becomes admin</p>
+              <p>• Subsequent users can be managed through the admin panel</p>
             </div>
           </div>
         </div>

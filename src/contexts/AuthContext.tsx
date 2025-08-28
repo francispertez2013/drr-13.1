@@ -81,6 +81,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
+        // If user record doesn't exist, create one for the authenticated user
+        if (error.code === 'PGRST116') {
+          console.log('User record not found, creating new user record...');
+          await createUserRecord(userId);
+          return;
+        }
+        
         console.error('Error fetching user data:', error);
         setError('User not found or inactive');
         return;
@@ -107,6 +114,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError('Failed to load user information');
     }
   };
+
+  const createUserRecord = async (userId: string) => {
+    try {
+      // Get user info from Supabase Auth
+      const { data: authUser, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !authUser.user) {
+        throw new Error('Could not get authenticated user info');
+      }
+
+      const email = authUser.user.email;
+      if (!email) {
+        throw new Error('User email not available');
+      }
+
+      // Create username from email
+      const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // Extract name from email or use default
+      const name = authUser.user.user_metadata?.name || 
+                   authUser.user.user_metadata?.full_name || 
+                   email.split('@')[0];
+
+      // Create user record in database
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          id: userId,
+          username: username,
+          email: email,
+          name: name,
+          role: 'admin', // Default to admin for first user, can be changed later
+          status: 'active',
+          password_hash: 'managed_by_supabase_auth'
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating user record:', error);
+        setError('Failed to create user profile');
+        return;
+      }
+
+      // Set user data
+      setUser({
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        role: data.role,
+        name: data.name
+      });
+      setIsAuthenticated(true);
+      setError(null);
+
+      console.log('User record created successfully');
+    } catch (error) {
+      console.error('Error creating user record:', error);
+      setError('Failed to create user profile');
+    }
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);

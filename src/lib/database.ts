@@ -252,6 +252,15 @@ export class DatabaseManager {
   }
 
   async createUser(user: Omit<UserRow, 'id' | 'created_at' | 'updated_at'> & { password?: string }): Promise<UserRow> {
+    // Check if this is the first user (make them admin)
+    const { data: existingUsers, error: countError } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    
+    const isFirstUser = !countError && (!existingUsers || existingUsers.length === 0);
+    const userRole = isFirstUser ? 'admin' : (user.role || 'editor');
+
     // Create auth user first
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.email,
@@ -260,7 +269,6 @@ export class DatabaseManager {
 
     if (authError) throw authError;
     if (!authData.user) throw new Error('Failed to create auth user');
-
     // Create user record in database
     const { data, error } = await supabase
       .from('users')
@@ -269,7 +277,7 @@ export class DatabaseManager {
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: userRole,
         status: user.status,
         password_hash: 'managed_by_supabase_auth'
       }])
