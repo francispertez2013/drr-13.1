@@ -129,8 +129,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('User email not available');
       }
 
-      // Create username from email
-      const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      // Create base username from email
+      const baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // Generate unique username
+      let username = baseUsername;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts) {
+        // Check if username already exists
+        const { data: existingUser, error: checkError } = await supabase
+          .from('users')
+          .select('username')
+          .eq('username', username)
+          .single();
+        
+        // If no error or error is "no rows found", username is available
+        if (checkError && checkError.code === 'PGRST116') {
+          break; // Username is available
+        }
+        
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.error('Error checking username availability:', checkError);
+          throw new Error('Failed to check username availability');
+        }
+        
+        // If we reach here, username exists, generate a new one
+        attempts++;
+        const randomSuffix = Math.random().toString(36).substring(2, 6);
+        username = `${baseUsername}${randomSuffix}`;
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new Error('Could not generate unique username');
+      }
       
       // Extract name from email or use default
       const name = authUser.user.user_metadata?.name || 
