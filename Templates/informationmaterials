@@ -1,0 +1,154 @@
+import React from 'react';
+import { Download, FileText, Map, Shield, Phone, Waves, Wind, Earth, Flame, CloudRain } from 'lucide-react';
+
+const App = () => {
+  const downloadMaterials = [
+    {
+      id: 1,
+      title: "Evacuation Routes Map",
+      description: "Detailed evacuation routes for all barangay zones",
+      icon: Map,
+      link: "#",
+      size: "2.4 MB",
+      updated: "2024-01-15"
+    },
+    {
+      id: 2,
+      title: "Emergency Contact List",
+      description: "Complete list of emergency hotlines and contacts",
+      icon: Phone,
+      link: "#",
+      size: "1.1 MB",
+      updated: "2024-01-10"
+    },
+    {
+      id: 3,
+      title: "Disaster Preparedness Brochure",
+      description: "Essential tips for family emergency preparedness",
+      icon: Shield,
+      link: "#",
+      size: "3.7 MB",
+      updated: "2024-01-12"
+    },
+    {
+      id: 4,
+      title: "Flood Safety Guidelines",
+      description: "Comprehensive flood response procedures",
+      icon: Waves,
+      link: "#",
+      size: "2.9 MB",
+      updated: "2024-01-08"
+    },
+    {
+      id: 5,
+      title: "Typhoon Preparedness Manual",
+      description: "Step-by-step typhoon preparation checklist",
+      icon: Wind,
+      link: "#",
+      size: "4.2 MB",
+      updated: "2024-01-14"
+    },
+    {
+      id: 6,
+      title: "Earthquake Response Plan",
+      description: "Community earthquake safety protocols",
+      icon: Earth,
+      link: "#",
+      size: "3.5 MB",
+      updated: "2024-01-11"
+    },
+    {
+      id: 7,
+      title: "Fire Safety Handbook",
+      description: "Fire prevention and response guidelines",
+      icon: Flame,
+      link: "#",
+      size: "2.8 MB",
+      updated: "2024-01-09"
+    },
+    {
+      id: 8,
+      title: "Rainfall Monitoring Guide",
+      description: "Understanding local rainfall patterns and warnings",
+      icon: CloudRain,
+      link: "#",
+      size: "1.9 MB",
+      updated: "2024-01-13"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-white font-sans" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <div className="max-w-6xl mx-auto px-6 py-16">
+        {/* Title Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-950 mb-6 leading-tight">
+            Download Informational Materials
+          </h1>
+          <p className="text-xl text-blue-950/80 max-w-3xl mx-auto leading-relaxed">
+            Access essential information materials, including brochures and evacuation routes.
+          </p>
+        </div>
+
+        {/* Download Materials Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {downloadMaterials.map((material) => {
+            const IconComponent = material.icon;
+            return (
+              <div key={material.id} className="bg-white border border-blue-950/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                {/* Thumbnail Preview */}
+                <div className="bg-gray-100 rounded-xl p-6 mb-6 text-center">
+                  <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                    <FileText className="text-blue-950/50" size={32} />
+                  </div>
+                  <p className="text-sm text-blue-950/60 font-medium">PDF Preview</p>
+                </div>
+                
+                {/* Content */}
+                <div className="flex items-center mb-4">
+                  <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <IconComponent className="text-white" size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-950 leading-tight">{material.title}</h3>
+                    <p className="text-xs text-blue-950/50">{material.size} • Updated {material.updated}</p>
+                  </div>
+                </div>
+                
+                <p className="text-blue-950/70 text-sm mb-6 leading-relaxed">{material.description}</p>
+                
+                <a 
+                  href={material.link} 
+                  className="inline-flex items-center justify-center w-full bg-yellow-500 hover:bg-yellow-400 text-blue-950 font-semibold px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md"
+                >
+                  <Download className="mr-2" size={18} />
+                  Download PDF
+                </a>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Additional Information */}
+        <div className="mt-16 text-center">
+          <div className="bg-blue-950/5 rounded-2xl p-8 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-blue-950 mb-4">Need More Information?</h2>
+            <p className="text-blue-950/70 text-lg mb-6 max-w-2xl mx-auto">
+              These materials are regularly updated to ensure you have the most current information for community preparedness.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-yellow-500 hover:bg-yellow-400 text-blue-950 font-semibold px-8 py-3 rounded-full transition-all duration-300">
+                Request Additional Materials
+              </button>
+              <button className="border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-blue-950 font-semibold px-8 py-3 rounded-full transition-all duration-300">
+                View All Resources
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

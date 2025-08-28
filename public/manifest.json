@@ -1,0 +1,44 @@
+{
+  "name": "MDRRMO Pio Duran",
+  "short_name": "MDRRMO",
+  "description": "Municipal Disaster Risk Reduction and Management Office",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["government", "emergency", "safety"],
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Emergency Hotline",
+      "short_name": "Emergency",
+      "description": "Quick access to emergency contacts",
+      "url": "/?action=emergency",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Report Incident",
+      "short_name": "Report",
+      "description": "Report an emergency or incident",
+      "url": "/?action=report",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

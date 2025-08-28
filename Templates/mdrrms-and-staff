@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import { User, Users, MapPin, Award, ChevronDown, ChevronUp } from 'lucide-react';
+
+const App = () => {
+  const [expandedMember, setExpandedMember] = useState(null);
+
+  const toggleMember = (id) => {
+    setExpandedMember(expandedMember === id ? null : id);
+  };
+
+  const councilStructure = {
+    mayor: { name: "Hon. Juan Dela Cruz", title: "Municipal Mayor & Chairman" },
+    secretary: { name: "Maria Santos", title: "General Secretary" },
+    members: [
+      { id: 1, name: "Dr. Roberto Garcia", agency: "Municipal Health Officer" },
+      { id: 2, name: "Carlos Rivera", agency: "Municipal Agriculturist" },
+      { id: 3, name: "Ana Rodriguez", agency: "Municipal Social Welfare Officer" },
+      { id: 4, name: "Pedro Martinez", agency: "Municipal Engineer" },
+      { id: 5, name: "Luisa Fernandez", agency: "Municipal Treasurer" },
+      { id: 6, name: "Ramon Castillo", agency: "Punong Barangay" },
+      { id: 7, name: "Elena Torres", agency: "Municipal Education Officer" },
+      { id: 8, name: "David Cruz", agency: "Municipal Environment Officer" }
+    ]
+  };
+
+  const organizationalStructure = {
+    mayor: { name: "Hon. Juan Dela Cruz", title: "Municipal Mayor & Chairman" },
+    head: { name: "Engr. Maria Santos", title: "MDRRMO Head" },
+    coreOfficers: [
+      {
+        id: 1,
+        name: "Administrative and Training Officer",
+        personnel: [
+          { id: 1, name: "Ana Reyes", designation: "Chief Administrative Officer", certifications: ["Emergency Management Certification", "Public Administration", "Disaster Risk Management"] },
+          { id: 2, name: "Carlos Gomez", designation: "Training Coordinator", certifications: ["First Aid Instructor", "Emergency Response Training", "Community Preparedness"] },
+          { id: 3, name: "Elena Torres", designation: "Administrative Assistant", certifications: ["Records Management", "Office Administration", "Crisis Communication"] },
+          { id: 4, name: "David Cruz", designation: "Logistics Officer", certifications: ["Supply Chain Management", "Emergency Procurement", "Resource Mobilization"] }
+        ]
+      },
+      {
+        id: 2,
+        name: "Operations and Warning Officer",
+        personnel: [
+          { id: 1, name: "Roberto Lim", designation: "Chief Operations Officer", certifications: ["Incident Command System", "Emergency Operations", "Search and Rescue"] },
+          { id: 2, name: "Sofia Chen", designation: "Warning Systems Officer", certifications: ["Early Warning Systems", "Meteorology Basics", "Communication Systems"] },
+          { id: 3, name: "Miguel Santos", designation: "Operations Assistant", certifications: ["Emergency Response", "Disaster Assessment", "Field Operations"] },
+          { id: 4, name: "Isabela Rivera", designation: "Communications Officer", certifications: ["Public Information", "Media Relations", "Crisis Communication"] }
+        ]
+      },
+      {
+        id: 3,
+        name: "Research and Planning Officer",
+        personnel: [
+          { id: 1, name: "Dr. Patricia Yang", designation: "Chief Planning Officer", certifications: ["Disaster Risk Assessment", "Urban Planning", "Climate Change Adaptation"] },
+          { id: 2, name: "Fernando Lopez", designation: "Research Analyst", certifications: ["Data Analysis", "GIS Mapping", "Risk Assessment"] },
+          { id: 3, name: "Carmen Valdez", designation: "Planning Assistant", certifications: ["Community Planning", "Project Development", "Monitoring and Evaluation"] },
+          { id: 4, name: "Alberto Ruiz", designation: "Database Manager", certifications: ["Information Systems", "Data Management", "Statistical Analysis"] }
+        ]
+      }
+    ]
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Title Banner - 1/3 size */}
+      <div className="relative h-64 md:h-80 flex items-center justify-center overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('https://placehold.co/1920x1080/1e3a8a/ffffff?text=Disaster+Risk+Reduction')",
+          }}
+        >
+          <div className="absolute inset-0 bg-blue-950 bg-opacity-70"></div>
+        </div>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-yellow-500 mb-2">MDRRMC</h1>
+          <p className="text-sm md:text-lg text-white font-medium max-w-2xl mx-auto leading-relaxed">
+            Municipal Disaster Risk Reduction and Management Council
+          </p>
+        </div>
+      </div>
+
+      {/* MDRRM Council Members */}
+      <section className="py-12 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <Users className="text-blue-950" size={32} />
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-950">MDRRM Council Members</h2>
+          </div>
+          
+          {/* Mayor Level */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-yellow-500 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
+              <img 
+                src={`https://placehold.co/80x80/1e3a8a/ffffff?text=${councilStructure.mayor.name.split(' ').map(n => n[0]).join('')}`}
+                alt={councilStructure.mayor.name}
+                className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+              />
+              <h3 className="text-xl font-bold text-blue-950">{councilStructure.mayor.name}</h3>
+              <p className="text-blue-900 font-medium">{councilStructure.mayor.title}</p>
+            </div>
+          </div>
+
+          {/* Secretary Level */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-blue-950 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
+              <img 
+                src={`https://placehold.co/80x80/f59e0b/ffffff?text=${councilStructure.secretary.name.split(' ').map(n => n[0]).join('')}`}
+                alt={councilStructure.secretary.name}
+                className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-yellow-500 object-cover"
+              />
+              <h3 className="text-xl font-bold text-yellow-500">{councilStructure.secretary.name}</h3>
+              <p className="text-yellow-200 font-medium">{councilStructure.secretary.title}</p>
+            </div>
+          </div>
+
+          {/* Council Members */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {councilStructure.members.map((member) => (
+              <div key={member.id} className="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex flex-col items-center text-center">
+                  <img 
+                    src={`https://placehold.co/100x100/1e3a8a/ffffff?text=${member.name.split(' ').map(n => n[0]).join('')}`}
+                    alt={member.name}
+                    className="w-16 h-16 rounded-full mb-4 object-cover"
+                  />
+                  <h3 className="font-semibold text-blue-950 mb-1 text-sm md:text-base">{member.name}</h3>
+                  <p className="text-xs md:text-sm text-gray-600">{member.agency}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MDRRMO Organizational Structure */}
+      <section className="py-12 px-4 bg-gray-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-12">
+            <MapPin className="text-blue-950" size={32} />
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-950">MDRRMO Organizational Structure</h2>
+          </div>
+
+          {/* Mayor Level */}
+          <div className="flex justify-center mb-8 md:mb-12">
+            <div className="bg-yellow-500 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
+              <img 
+                src={`https://placehold.co/80x80/1e3a8a/ffffff?text=${organizationalStructure.mayor.name.split(' ').map(n => n[0]).join('')}`}
+                alt={organizationalStructure.mayor.name}
+                className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+              />
+              <h3 className="text-lg md:text-xl font-bold text-blue-950">{organizationalStructure.mayor.name}</h3>
+              <p className="text-blue-900 font-medium text-sm md:text-base">{organizationalStructure.mayor.title}</p>
+            </div>
+          </div>
+
+          {/* Head Level */}
+          <div className="flex justify-center mb-8 md:mb-12">
+            <div className="bg-blue-950 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
+              <img 
+                src={`https://placehold.co/80x80/f59e0b/ffffff?text=${organizationalStructure.head.name.split(' ').map(n => n[0]).join('')}`}
+                alt={organizationalStructure.head.name}
+                className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-yellow-500 object-cover"
+              />
+              <h3 className="text-lg md:text-xl font-bold text-yellow-500">{organizationalStructure.head.name}</h3>
+              <p className="text-yellow-200 font-medium text-sm md:text-base">{organizationalStructure.head.title}</p>
+            </div>
+          </div>
+
+          {/* Core Officers */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+            {organizationalStructure.coreOfficers.map((officer) => (
+              <div key={officer.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-blue-950 p-4 text-center">
+                  <h3 className="text-sm md:text-base font-bold text-yellow-500">{officer.name}</h3>
+                </div>
+                <div className="p-4">
+                  {officer.personnel.slice(0, 4).map((person) => (
+                    <div 
+                      key={person.id} 
+                      className="border-b border-gray-200 last:border-b-0 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => toggleMember(`${officer.id}-${person.id}`)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <img 
+                            src={`https://placehold.co/40x40/1e3a8a/ffffff?text=${person.name.split(' ').map(n => n[0]).join('')}`}
+                            alt={person.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-blue-950 text-sm">{person.name}</h4>
+                            <p className="text-xs text-gray-600 mb-1">{person.designation}</p>
+                            {expandedMember === `${officer.id}-${person.id}` && (
+                              <div className="mt-2">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Award className="text-yellow-500" size={12} />
+                                  <span className="text-xs font-medium text-gray-700">Certifications:</span>
+                                </div>
+                                <ul className="text-xs text-gray-600 space-y-1">
+                                  {person.certifications.map((cert, idx) => (
+                                    <li key={idx} className="flex items-start gap-1">
+                                      <span className="text-xs">•</span>
+                                      <span className="text-xs">{cert}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button className="text-blue-950 hover:text-yellow-500 transition-colors ml-2">
+                          {expandedMember === `${officer.id}-${person.id}` ? 
+                            <ChevronUp size={16} /> : 
+                            <ChevronDown size={16} />
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default App;
